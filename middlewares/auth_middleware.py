@@ -13,13 +13,12 @@ class AuthMiddleware(BaseHTTPMiddleware):
         # Default excluded paths
         self.excluded_paths = excluded_paths or [
             "/auth/",
-            "/products/",  # Products are public
             "/docs",
             "/redoc",
             "/openapi.json",
             "/favicon.ico",
-            "/",  # Root endpoint
-            "/health"  # Health check
+            "/",
+            "/health"
         ]
 
     def create_error_response(self, status_code: int, message: str, errors: list = None):

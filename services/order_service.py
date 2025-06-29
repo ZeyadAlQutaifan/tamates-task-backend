@@ -4,7 +4,7 @@ from modles.users_models import User
 from schemas.orders_schemas import CreateOrderRequest, InitiateOrderResponse, OrderResponse
 from schemas.api_response_schemas import PaginatedResponse
 from services.products_service import ProductService
-
+from config.setting import settings
 
 def calculate_price(order_price: float, quantity: int) -> float:
     return order_price * quantity
@@ -44,12 +44,12 @@ class OrderService:
 
         payment = self.mock_initialize_payment(new_order.id, new_order.price)
 
-        return InitiateOrderResponse(payment_url=f"http://localhost:3000/payment/{payment.payment_id}")
+        return InitiateOrderResponse(payment_url=f"{settings.PAYMENT_BASE_URL}/payment/{payment.payment_id}")
 
     def mock_initialize_payment(self, order_id: int, price: float) -> PaymentRequest:
         new_payment = PaymentRequest(reference_id=order_id, price=price, status="NEW",
-                                     redirect_url="http://127.0.0.1:3000/payment/summary",
-                                     callback_url="http://127.0.0.1:8000/payment/callback/")
+                                     redirect_url=settings.PAYMENT_REDIRECT_URL,
+                                     callback_url=settings.PAYMENT_CALLBACK_URL)
         self.db.add(new_payment)
         self.db.commit()
         self.db.refresh(new_payment)

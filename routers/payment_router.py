@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends
+from fastapi.security import HTTPBearer
 
 from dependencies import get_payment_service, get_order_service
 from schemas.orders_schemas import PaymentCallback, ProcessPayment
@@ -15,7 +16,7 @@ router = APIRouter(
 
 payment_service_dependency = Annotated[PaymentService, Depends(get_payment_service)]
 order_service_dependency = Annotated[OrderService, Depends(get_order_service)]
-
+security = HTTPBearer()
 
 @router.get(
     "/{payment_id}",

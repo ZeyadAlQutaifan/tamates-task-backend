@@ -3,6 +3,7 @@ from fastapi import Request
 
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials
+from passlib.ifc import PasswordHash
 
 from sqlalchemy.orm import Session
 from database import get_db
@@ -12,6 +13,7 @@ from services.order_service import OrderService
 from services.payment_service import PaymentService
 from services.products_service import ProductService
 from utils import security
+from utils.password_hasher import Hasher
 from utils.security import decode_token
 
 

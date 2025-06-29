@@ -93,8 +93,7 @@ class PaymentService:
             self.db.commit()
             self.db.refresh(payment_details)
 
-            # Update order status via callback
-            # In real implementation, this should be a separate service/webhook
+
             order_service.mock_payment_callback(callback, self.db)
 
             return callback

@@ -7,14 +7,15 @@ from fastapi import FastAPI, HTTPException, Depends
 from fastapi.exceptions import RequestValidationError
 from pydantic import BaseModel, ValidationError
 from typing import List, Annotated
-import modles
+
+from starlette.middleware.cors import CORSMiddleware
+
 from database import engine, SessionLocal, get_db, Base
 from sqlalchemy.orm import Session
 
 from middlewares.audit_middleware import AuditMiddleware
 from middlewares.auth_middleware import AuthMiddleware
 from modles.product_models import Product
-from routers.questions_router import router as questions_router
 from routers.products_router import router as products_router
 from routers.auth_router import router as auth_router
 from routers.orders_router import router as orders_router
@@ -106,7 +107,6 @@ app = FastAPI(lifespan=lifespan,
               version="1.0.0",
               )
 
-app.include_router(questions_router)
 app.include_router(products_router)
 app.include_router(auth_router)
 app.include_router(orders_router)
@@ -114,7 +114,13 @@ app.include_router(payment_router)
 
 app.add_middleware(AuthMiddleware)
 app.add_middleware(AuditMiddleware)
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["http://localhost:3000"],  # React app URL
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
 app.add_exception_handler(404, not_found_handler)
 app.add_exception_handler(RequestValidationError, validation_error_handler)
 app.add_exception_handler(ValidationError, pydantic_validation_error_handler)
@@ -124,3 +130,11 @@ app.add_exception_handler(Exception, general_exception_handler)
 Base.metadata.create_all(bind=engine)
 
 db_dependency = Annotated[Session, Depends(get_db)]
+if __name__ == "__main__":
+    from config.setting import settings
+    uvicorn.run(
+        "main:app",
+        host=settings.API_HOST,
+        port=settings.API_PORT,
+        reload=settings.DEBUG
+    )

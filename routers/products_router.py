@@ -1,6 +1,7 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Security
+from fastapi.security import HTTPBearer
 
 from dependencies import get_product_service
 from schemas.api_response_schemas import ApiResponse, PaginatedResponse, success_response, error_response
@@ -49,12 +50,13 @@ async def get_product(
             errors=[str(e)]
         )
 
-
+security = HTTPBearer()
 @router.get(
     "/",
     response_model=ApiResponse[PaginatedResponse[ProductResponse]],
     summary="Get All Products",
-    description="Retrieve paginated list of all products"
+    description="Retrieve paginated list of all products",
+    dependencies=[Security(security)]
 )
 async def get_products(
         service: product_service_dependency,
@@ -73,7 +75,7 @@ async def get_products(
         products = service.get_products(page, size)
         return success_response(
             data=products,
-            message=f"Retrieved {len(products.data)} products"
+            message=f"Retrieved {len(products.content)} products"
         )
     except Exception as e:
         return error_response(

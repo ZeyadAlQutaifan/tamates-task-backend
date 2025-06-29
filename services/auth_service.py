@@ -1,10 +1,12 @@
-from typing import Any
+from typing import Any, Annotated
 
 from sqlalchemy.orm import Session
 from datetime import datetime
+
 from modles.users_models import User
 from schemas.auth_schemas import LoginRequest, RegisterRequest, AuthResponse
 from utils.security import hash_password, verify_password, create_access_token, create_refresh_token, decode_token
+
 
 
 class AuthService:
@@ -21,7 +23,7 @@ class AuthService:
             raise ValueError("Invalid email or password")
 
         # Verify password
-        if not verify_password(login_request.password, user.password_hashed):
+        if not verify_password(login_request.password, user.hashed_password):
             raise ValueError("Invalid email or password")
 
         # Create token data
@@ -54,10 +56,9 @@ class AuthService:
             else:
                 raise ValueError("Username already taken")
 
-        # Create new user
         user = User(
             username=register_request.username,
-            password_hashed=hash_password(register_request.password),
+            hashed_password=hash_password(register_request.password),
             email=register_request.email,
             role="User",
             registered_on=datetime.utcnow().isoformat()
