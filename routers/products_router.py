@@ -1,24 +1,82 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+
 from dependencies import get_product_service
-from schemas.products_schemas import ProductBase
+from schemas.api_response_schemas import ApiResponse, PaginatedResponse, success_response, error_response
+from schemas.products_schemas import ProductResponse
 from services.products_service import ProductService
 
 router = APIRouter(
     prefix="/products",
     tags=["products"]
 )
+
 product_service_dependency = Annotated[ProductService, Depends(get_product_service)]
 
-@router.get("/{product_id}")
-async def get_product(product_id: int, service: product_service_dependency):
-    return service.get_product_by_id(product_id)
 
-@router.get("/")
-async def get_products(service: product_service_dependency, page: int = 0, per_page: int = 10):
-    return {"products": service.get_products(page, per_page)}
+@router.get(
+    "/{product_id}",
+    response_model=ApiResponse[ProductResponse],
+    summary="Get Product by ID",
+    description="Retrieve a specific product by its ID"
+)
+async def get_product(
+        product_id: int,
+        service: product_service_dependency
+) -> ApiResponse[ProductResponse]:
+    """
+    Get a specific product by ID:
 
-@router.post("/")
-async def create_product(product: ProductBase, service: product_service_dependency):
-    return service.create_product(product)
+    - **product_id**: The ID of the product to retrieve
+
+    Returns product information including title, description, price, and location.
+    """
+    try:
+        product = service.get_product_by_id(product_id)
+        return success_response(
+            data=product,
+            message="Product retrieved successfully"
+        )
+    except ValueError as e:
+        return error_response(
+            message="Product not found",
+            errors=[str(e)]
+        )
+    except Exception as e:
+        return error_response(
+            message="Failed to retrieve product",
+            errors=[str(e)]
+        )
+
+
+@router.get(
+    "/",
+    response_model=ApiResponse[PaginatedResponse[ProductResponse]],
+    summary="Get All Products",
+    description="Retrieve paginated list of all products"
+)
+async def get_products(
+        service: product_service_dependency,
+        page: int = Query(1, ge=1, description="Page number (starts from 1)"),
+        size: int = Query(10, ge=1, le=100, description="Number of products per page (1-100)")
+) -> ApiResponse[PaginatedResponse[ProductResponse]]:
+    """
+    Get paginated list of products:
+
+    - **page**: Page number (starts from 1)
+    - **size**: Number of products per page (1-100)
+
+    Returns products sorted by ID with pagination information.
+    """
+    try:
+        products = service.get_products(page, size)
+        return success_response(
+            data=products,
+            message=f"Retrieved {len(products.data)} products"
+        )
+    except Exception as e:
+        return error_response(
+            message="Failed to retrieve products",
+            errors=[str(e)]
+        )
