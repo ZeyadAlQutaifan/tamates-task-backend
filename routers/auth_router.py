@@ -19,33 +19,37 @@ auth_service_dependency = Annotated[AuthService, Depends(get_auth_service)]
 current_user_dependency = Annotated[User, Depends(get_current_user)]
 
 
-@router.post("/login")
+@router.post(
+    "/login",
+    response_model=ApiResponse[AuthResponse],
+    summary="User Login",
+    description="Authenticate user with email and password to get JWT tokens"
+)
 async def login(
         login_request: LoginRequest,
         auth_service: auth_service_dependency
 ) -> ApiResponse[AuthResponse]:
-    print(f"🔍 LOGIN ENDPOINT - Received request for: {login_request.email}")
-    print(f"🔍 LOGIN ENDPOINT - Password in request: '{login_request.password}'")
+    """
+    User login with email and password:
+
+    - **email**: User's email address
+    - **password**: User's password
+
+    Returns JWT access token and refresh token for authenticated requests.
+    """
 
     try:
         auth_response = auth_service.login(login_request)
-        print(f"✅ LOGIN ENDPOINT - Authentication succeeded")
         return success_response(
             data=auth_response,
             message="Login successful"
         )
-    except ValueError as e:
-        print(f"🚨 LOGIN ENDPOINT - ValueError: {str(e)}")
-        return error_response(
-            message="Authentication failed",
-            errors=[str(e)]
-        )
     except Exception as e:
-        print(f"🚨 LOGIN ENDPOINT - Exception: {str(e)}")
         return error_response(
             message="Login failed",
             errors=[str(e)]
         )
+
 
 @router.post(
     "/register",

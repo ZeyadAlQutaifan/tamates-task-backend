@@ -24,21 +24,33 @@ class ProductService:
             location=product.location
         )
 
-    def get_products(self, page: int = 1, size: int = 10) -> PaginatedResponse[ProductResponse]:
+
+    def get_products(self, page: int = 1, size: int = 10, location: str = None) -> PaginatedResponse[ProductResponse]:
         """
         Get paginated list of products
         """
         # Calculate offset (page starts from 1)
         offset = (page - 1) * size
 
+        # Base query
+        query = self.db.query(Product)
+
+        # Apply location filter if provided and not empty
+        if location and location.strip():
+            query = query.filter(Product.location == location.strip())
+
         # Get products with pagination
-        products = (self.db.query(Product)
+        products = (query
                     .offset(offset)
                     .limit(size)
                     .all())
 
-        # Get total count
-        total_count = self.db.query(Product).count()
+        # Get total count with same filter
+        count_query = self.db.query(Product)
+        if location and location.strip():
+            count_query = count_query.filter(Product.location == location.strip())
+
+        total_count = count_query.count()
 
         # Calculate pagination info
         total_pages = (total_count + size - 1) // size

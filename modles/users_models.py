@@ -6,7 +6,7 @@ class User(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, unique=True, nullable=False)
-    hashed_password = Column(String(255), nullable=False)  # Increased from 100 to 255
+    hashed_password = Column(Text, nullable=False)
     email = Column(String, unique=True, nullable=False)
     role = Column(String, default="User")
     registered_on = Column(String, nullable=False)

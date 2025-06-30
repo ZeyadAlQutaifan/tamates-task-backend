@@ -41,7 +41,7 @@ def populate_products_from_csv():
 
         # Check if file exists
         if not os.path.exists(csv_file_path):
-            print(f"⚠️  CSV file '{csv_file_path}' not found! Skipping auto-import.")
+            print(f"CSV file '{csv_file_path}' not found! Skipping auto-import.")
             return
 
         # Check if products already exist
@@ -75,7 +75,7 @@ def populate_products_from_csv():
                     continue
 
         db.commit()
-        print(f"✅ Successfully imported {products_created} products on startup!")
+        print(f"Successfully imported {products_created} products on startup!")
 
     except Exception as e:
         print(f" Error during startup import: {e}")
@@ -98,7 +98,7 @@ async def lifespan(app: FastAPI):
     yield
 
     # Shutdown
-    print("🛑 FastAPI application is shutting down...")
+    print("FastAPI application is shutting down...")
 
 
 app = FastAPI(lifespan=lifespan,

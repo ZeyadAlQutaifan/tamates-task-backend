@@ -1,11 +1,8 @@
-# middlewares/audit_middleware.py
 import json
 import time
-from datetime import datetime
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.responses import StreamingResponse
-from sqlalchemy.orm import Session
 from database import SessionLocal
 from modles.audit_models import AuditTrail
 from utils.security import decode_token
@@ -67,12 +64,6 @@ class AuditMiddleware(BaseHTTPMiddleware):
                 # Try to parse as JSON for better storage
                 try:
                     json_body = json.loads(body.decode('utf-8'))
-                    # Mask sensitive fields
-                    if isinstance(json_body, dict):
-                        sensitive_fields = ['password', 'card_number', 'cvv']
-                        for field in sensitive_fields:
-                            if field in json_body:
-                                json_body[field] = "***MASKED***"
                     return json.dumps(json_body)
                 except (json.JSONDecodeError, UnicodeDecodeError):
                     return body.decode('utf-8', errors='ignore')[:1000]  # Limit size

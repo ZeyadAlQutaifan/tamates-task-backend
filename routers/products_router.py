@@ -1,4 +1,4 @@
-from typing import Annotated
+from typing import Annotated, Optional
 
 from fastapi import APIRouter, Depends, Query, Security
 from fastapi.security import HTTPBearer
@@ -61,18 +61,11 @@ security = HTTPBearer()
 async def get_products(
         service: product_service_dependency,
         page: int = Query(1, ge=1, description="Page number (starts from 1)"),
-        size: int = Query(10, ge=1, le=100, description="Number of products per page (1-100)")
+        size: int = Query(10, ge=1, le=100, description="Number of products per page (1-100)"),
+        location: Optional[str] = Query(None, description="Location of Item (JO/SA") ,
 ) -> ApiResponse[PaginatedResponse[ProductResponse]]:
-    """
-    Get paginated list of products:
-
-    - **page**: Page number (starts from 1)
-    - **size**: Number of products per page (1-100)
-
-    Returns products sorted by ID with pagination information.
-    """
     try:
-        products = service.get_products(page, size)
+        products = service.get_products(page, size, location)
         return success_response(
             data=products,
             message=f"Retrieved {len(products.content)} products"

@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session
+
 from modles.order_models import Order, PaymentRequest
 from modles.users_models import User
 from schemas.orders_schemas import CreateOrderRequest, InitiateOrderResponse, OrderResponse
@@ -55,7 +56,7 @@ class OrderService:
         self.db.refresh(new_payment)
         return new_payment
 
-    def get_orders(self, user: User, page: int = 1, size: int = 10) -> PaginatedResponse[OrderResponse]:
+    def get_orders(self, user: User,product_service: ProductService, page: int = 1, size: int = 10) -> PaginatedResponse[OrderResponse]:
         """
         Get paginated orders for a specific user
         """
@@ -83,7 +84,7 @@ class OrderService:
             OrderResponse(
                 order_id=order.id,
                 trx_id=order.trx_number or "",
-                product_id=str(order.product_id),
+                product =product_service.get_product_by_id(order.product_id),
                 quantity=order.quantity,
                 price=order.price,
                 status=order.status,
@@ -100,4 +101,21 @@ class OrderService:
             total_pages=total_pages,
             has_next=has_next,
             has_previous=has_previous
+        )
+
+    def get_order(self, order_id, user: User, product_service: ProductService):
+        order = self.db.query(Order).filter(
+            (Order.user_id == user.id) & (Order.id == order_id)
+        ).first()
+        if not order:
+            raise ValueError(f"Order {order_id} not found")
+
+        return OrderResponse(
+            order_id=order.id,
+            trx_id=order.trx_number,
+            product=product_service.get_product_by_id(order.product_id),
+            quantity=order.quantity,
+            price=order.price,
+            status= order.status,
+            created_at=order.created_at,
         )

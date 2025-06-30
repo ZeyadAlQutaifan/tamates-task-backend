@@ -57,7 +57,6 @@ async def initiate(
         )
 
 
-
 @router.get(
     "/",
     response_model=ApiResponse[PaginatedResponse[OrderResponse]],
@@ -66,19 +65,44 @@ async def initiate(
     dependencies=[Security(security)]
 )
 async def get_my_orders(
-    user: current_user_dependency,
-    service: order_service_dependency,
-    page: int = Query(1, ge=1, description="Page number"),
-    size: int = Query(10, ge=1, le=100, description="Items per page")
+        user: current_user_dependency,
+        service: order_service_dependency,
+        product_service: product_service_dependency,
+        page: int = Query(1, ge=1, description="Page number"),
+        size: int = Query(10, ge=1, le=100, description="Items per page")
 ) -> ApiResponse[PaginatedResponse[OrderResponse]]:
     """
     Get current user's orders with pagination
     """
     try:
-        result = service.get_orders(user, page, size)
+        result = service.get_orders(user, product_service, page, size)
         return success_response(
             data=result,
             message=f"Retrieved {len(result.content)} orders"
+        )
+    except Exception as e:
+        return error_response(
+            message="Failed to retrieve orders",
+            errors=[str(e)]
+        )
+
+
+@router.get("/{order_id}",
+            response_model=ApiResponse[OrderResponse],
+            summary="Get My Orders",
+            description="Get paginated list of current user's orders",
+            dependencies=[Security(security)]
+            )
+async def get_order(user: current_user_dependency, product_service: product_service_dependency,
+                    service: order_service_dependency, order_id: int) -> ApiResponse[OrderResponse]:
+    """
+    Get order by id
+    """
+    try:
+        result = service.get_order(order_id, user, product_service)
+        return success_response(
+            data=result,
+            message=f"Retrieved successfully order {order_id}"
         )
     except Exception as e:
         return error_response(

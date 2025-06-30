@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, EmailStr
 
 
 class LoginRequest(BaseModel):
-    email: EmailStr = Field(..., example="user@example.com")
+    email: EmailStr = Field(..., example="john@example.com")
     password: str = Field(..., min_length=6, example="password123")
     class Config:
         # Disable any automatic masking

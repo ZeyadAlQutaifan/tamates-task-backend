@@ -1,5 +1,3 @@
-from typing import Any, Annotated
-
 from sqlalchemy.orm import Session
 from datetime import datetime
 
@@ -14,19 +12,13 @@ class AuthService:
         self.db = db
 
     def login(self, login_request: LoginRequest) -> AuthResponse:
-        """
-        Authenticate user with email and password
-        """
-        # Find user by email
         user = self.db.query(User).filter(User.email == login_request.email).first()
         if not user:
             raise ValueError("Invalid email or password")
 
-        # Verify password
         if not verify_password(login_request.password, user.hashed_password):
             raise ValueError("Invalid email or password")
 
-        # Create token data
         token_data = {
             "sub": user.username,
             "user_id": user.id,
@@ -44,7 +36,6 @@ class AuthService:
         """
         Register a new user account
         """
-        # Check if user already exists
         existing_user = self.db.query(User).filter(
             (User.username == register_request.username) |
             (User.email == register_request.email)
